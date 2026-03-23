@@ -1,0 +1,5 @@
+CE;1000;Pedro;Pérez
+CE;1001;Miguel;Morales
+TI;1002;Andrés;Pérez
+CC;1003;Valentina;Martínez
+CE;1004;Andrés;Gómez

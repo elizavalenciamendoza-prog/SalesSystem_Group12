@@ -1,3 +1,0 @@
-1;Laptop;2500.0
-2;Mouse;25.0
-3;Keyboard;45.0
