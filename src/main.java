@@ -1,4 +1,6 @@
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class main {
@@ -6,8 +8,9 @@ public class main {
         try {
             System.out.println("--- SISTEMA DE VENTAS: PROCESAMIENTO SEMANA 5 ---");
 
-            // Ruta hacia la carpeta data que veo en tu Eclipse
             String rutaData = "src/data/";
+            // Guarda el precio de cada producto usando su ID
+            Map<String, Double> precios = new HashMap<>();
 
             // 1. LEER VENDEDORES
             File archivoVend = new File(rutaData + "salesMenInfo.txt");
@@ -26,11 +29,12 @@ public class main {
                 String[] datos = lectorProd.nextLine().split(";");
                 System.out.println(" > " + datos[0] + ";" + datos[1] + ";" + datos[2]);
                 if (datos.length == 3) {
-                    precios.put(datos[0], Double.parseDouble(datos[2]));
+                    String precioTexto = datos[2].trim().replace(',', '.');
+                    precios.put(datos[0], Double.parseDouble(precioTexto));
                 }
             }
             lectorProd.close();
-            
+
             // 3. LEER VENTAS Y ACUMULADOR POR VENDEDOR
             System.out.println("\nCargando Ventas Registradas:");
             File[] archivosVentas = new File(rutaData).listFiles();
