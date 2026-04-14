@@ -6,14 +6,22 @@ public class main {
         try {
             System.out.println("--- SISTEMA DE VENTAS: PROCESAMIENTO SEMANA 5 ---");
 
+            // Ruta hacia la carpeta data que veo en tu Eclipse
             String rutaData = "src/data/";
-
-            Map<String, Double> precios = new HashMap<>();
 
             // 1. LEER VENDEDORES
             File archivoVend = new File(rutaData + "salesMenInfo.txt");
             Scanner lectorVend = new Scanner(archivoVend);
             System.out.println("\nCargando Vendedores:");
+            while (lectorVend.hasNextLine()) {
+                System.out.println(" - " + lectorVend.nextLine());
+            }
+            lectorVend.close();
+
+            // 2. LEER PRODUCTOS
+            File archivoProd = new File(rutaData + "products.txt");
+            Scanner lectorProd = new Scanner(archivoProd);
+            System.out.println("\nCargando Catálogo de Productos:");
             while (lectorProd.hasNextLine()) {
                 String[] datos = lectorProd.nextLine().split(";");
                 System.out.println(" > " + datos[0] + ";" + datos[1] + ";" + datos[2]);
@@ -22,16 +30,7 @@ public class main {
                 }
             }
             lectorProd.close();
-
-            // 2. LEER PRODUCTOS
-            File archivoProd = new File(rutaData + "products.txt");
-            Scanner lectorProd = new Scanner(archivoProd);
-            System.out.println("\nCargando Catálogo de Productos:");
-            while (lectorProd.hasNextLine()) {
-                System.out.println(" > " + lectorProd.nextLine());
-            }
-            lectorProd.close();
-
+            
             // 3. LEER VENTAS Y ACUMULADOR POR VENDEDOR
             System.out.println("\nCargando Ventas Registradas:");
             File[] archivosVentas = new File(rutaData).listFiles();
@@ -80,7 +79,6 @@ public class main {
                     System.out.println(" TOTAL vendedor " + idVendedor + ": " + totalVendedor);
                 }
             }
-            
             // Mensaje de éxito obligatorio
             System.out.println("\nFinalización exitosa");
 
