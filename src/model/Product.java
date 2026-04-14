@@ -25,4 +25,8 @@ public class Product {
     public double getPrice() {
         return price;
     }
+    
+    public void printInfo() {
+        System.out.println("ID: " + id + " | " + "Producto: " + productName + " | Precio: $" + price);
+    }
 }
