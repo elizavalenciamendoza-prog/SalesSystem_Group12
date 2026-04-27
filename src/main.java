@@ -1,140 +1,379 @@
+import java.io.BufferedWriter;
 import java.io.File;
-import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import model.Product;
-import model.Seller;
-import model.Sale;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Scanner;
 
+import model.Product;
+import model.Sale;
+import model.Seller;
+
+/**
+ * Main processing class for the final delivery.
+ * <p>
+ * This program reads the generated input files, validates their content,
+ * processes the sales, and creates the final report files required by the
+ * project statement.
+ */
 public class main {
+
+    private static final String DATA_FOLDER = "src/data";
+    private static final String SALESMEN_INFO_FILE = "salesMenInfo.txt";
+    private static final String PRODUCTS_FILE = "products.txt";
+    private static final String SALES_REPORT_FILE = "salesmenReport.csv";
+    private static final String PRODUCTS_REPORT_FILE = "productsReport.csv";
+    private static final String ERROR_LOG_FILE = "errorLog.txt";
+
+    /**
+     * Program entry point.
+     *
+     * @param args command line arguments (not used)
+     */
     public static void main(String[] args) {
         try {
-            System.out.println("--- SISTEMA DE VENTAS: PROCESAMIENTO SEMANA 5 ---");
+            File dataDirectory = new File(DATA_FOLDER);
+            validateDataDirectory(dataDirectory);
 
-            // Ruta hacia la carpeta data
-            String rutaData = "src/data/";
+            List<String> validationErrors = new ArrayList<String>();
+            Map<String, Seller> sellersByKey = loadSellers(dataDirectory, validationErrors);
+            Map<String, Product> productsById = loadProducts(dataDirectory, validationErrors);
 
-            // 1. LEER VENDEDORES
-            File archivoVend = new File(rutaData + "salesMenInfo.txt");
-            Scanner lectorVend = new Scanner(archivoVend);
-            System.out.println("\nCargando Vendedores:");
-            List<Seller> vendedores = new ArrayList<>();
-            while (lectorVend.hasNextLine()) {
-                String linea = lectorVend.nextLine();
-                // Primero dividimos la línea en partes y luego creamos el objeto Vendedor
-                String[] partes = linea.split(";");
+            processSalesFiles(dataDirectory, sellersByKey, productsById, validationErrors);
+            writeSalesmenReport(dataDirectory, sellersByKey);
+            writeProductsReport(dataDirectory, productsById);
+            writeErrorLog(dataDirectory, validationErrors);
 
-                // Validamos que la línea tenga el formato correcto antes de crear el objeto
-                if (partes.length == 4) {
-                    String tipoId = partes[0].trim();
-                    // Creamos el objeto Vendedor con los datos extraídos
-                    String id = partes[1].trim();
-                    String nombre = partes[2].trim();
-                    String apellido = partes[3].trim();
-                    Seller vendedor = new Seller(tipoId, Long.parseLong(id), nombre, apellido);
-                    vendedores.add(vendedor);
+            System.out.println("Finalización exitosa");
+        } catch (Exception exception) {
+            System.err.println("Error al procesar los archivos: " + exception.getMessage());
+        }
+    }
+
+    private static void validateDataDirectory(File dataDirectory) {
+        if (!dataDirectory.exists() || !dataDirectory.isDirectory()) {
+            throw new IllegalStateException("La carpeta de datos no existe en la ruta: " + DATA_FOLDER);
+        }
+    }
+
+    private static Map<String, Seller> loadSellers(File dataDirectory, List<String> validationErrors) throws IOException {
+        File sellersFile = new File(dataDirectory, SALESMEN_INFO_FILE);
+        if (!sellersFile.exists()) {
+            throw new IOException("No se encontró el archivo de vendedores: " + sellersFile.getPath());
+        }
+
+        Map<String, Seller> sellersByKey = new LinkedHashMap<String, Seller>();
+        Scanner scanner = new Scanner(sellersFile, "UTF-8");
+
+        try {
+            int lineNumber = 0;
+            while (scanner.hasNextLine()) {
+                lineNumber++;
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) {
+                    continue;
                 }
-            }
-            lectorVend.close();
 
-            // 2. LEER PRODUCTOS
-            List<Product> productos = new ArrayList<>();
-            File archivoProd = new File(rutaData + "products.txt");
-            Scanner lectorProd = new Scanner(archivoProd);
-            System.out.println("Cargando Catálogo de Productos:");
-            while (lectorProd.hasNextLine()) {
-                String linea = lectorProd.nextLine();
-                String[] partes = linea.split(";");
-
-                if (partes.length == 3) {
-                    String id = partes[0].trim();
-                    String nombre = partes[1].trim();
-                    double precio = Double.parseDouble(partes[2].trim().replace(",", ".")); // En caso de que el precio use coma como separador decimal reemplazamos por punto
-                    Product producto = new Product(id, nombre, precio);
-                    productos.add(producto);
+                String[] fields = splitLine(line);
+                if (fields.length != 4) {
+                    validationErrors.add("Línea inválida en salesMenInfo.txt (línea " + lineNumber + "): " + line);
+                    continue;
                 }
-            }
-            lectorProd.close();
 
-            // 3. LEER VENTAS
-            File carpetaData = new File(rutaData);
-            File[] archivosVentas = carpetaData.listFiles(
-                // Filtramos solo los archivos que corresponden a ventas
-                archivo -> archivo.isFile() && archivo.getName().startsWith("sales_") && archivo.getName().endsWith(".txt")
-            );
+                try {
+                    String documentType = fields[0];
+                    long documentNumber = Long.parseLong(fields[1]);
+                    String firstName = fields[2];
+                    String lastName = fields[3];
+                    String sellerKey = buildSellerKey(documentType, documentNumber);
 
-            System.out.println("Cargando Ventas:");
-            if (archivosVentas != null) {
-                // Procesamos cada archivo de ventas
-                for (File archivoVentas : archivosVentas) {
-                    Scanner lectorVentas = new Scanner(archivoVentas);
-
-                    if (!lectorVentas.hasNextLine()) {
-                        lectorVentas.close();
+                    if (sellersByKey.containsKey(sellerKey)) {
+                        validationErrors.add("Vendedor duplicado en salesMenInfo.txt: " + sellerKey);
                         continue;
                     }
 
-                    String linea = lectorVentas.nextLine();
-                    Seller vendedor = null;
-                    // La primera línea del archivo de ventas contiene la información del vendedor
-                    String[] partesVendedor = linea.split(";");
-
-                    if (partesVendedor.length == 2) {
-                        String tipoId = partesVendedor[0].trim();
-                        String id = partesVendedor[1].trim();
-
-                        // Buscamos el vendedor correspondiente en la lista de vendedores
-                        for (Seller v : vendedores) {
-                            if (v.getDocumentType().equals(tipoId) && String.valueOf(v.getId()).equals(id)) {
-                                vendedor = v;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Leemos las ventas del vendedor actual
-                    while (lectorVentas.hasNextLine()) {
-                        linea = lectorVentas.nextLine();
-                        String[] partes = linea.split(";");
-
-                        if (partes.length == 2 && vendedor != null) {
-                            String idProducto = partes[0].trim();
-                            int cantidad = Integer.parseInt(partes[1].trim());
-
-                            Product producto = null;
-                            // Buscamos el producto en el catálogo
-                            for (Product p : productos) {
-                                if (p.getId().equals(idProducto)) {
-                                    producto = p;
-                                    break;
-                                }
-                            }
-
-                            if (producto != null) {
-                                // Creamos la venta y la asociamos al vendedor
-                                Sale venta = new Sale(producto, cantidad);
-                                vendedor.addSale(venta);
-                            }
-                        }
-                    }
-
-                    lectorVentas.close();
+                    sellersByKey.put(sellerKey, new Seller(documentType, documentNumber, firstName, lastName));
+                } catch (NumberFormatException exception) {
+                    validationErrors.add("Número de documento inválido en salesMenInfo.txt (línea " + lineNumber + "): " + line);
                 }
             }
+        } finally {
+            scanner.close();
+        }
 
-            System.out.println("\n--- INFORMACIÓN DE VENDEDORES Y SUS VENTAS ---");
+        if (sellersByKey.isEmpty()) {
+            throw new IllegalStateException("No se cargó ningún vendedor válido desde salesMenInfo.txt");
+        }
 
-            for (Seller v : vendedores) {
-            	System.out.println("Vendedor");
-                v.printInfo();
+        return sellersByKey;
+    }
+
+    private static Map<String, Product> loadProducts(File dataDirectory, List<String> validationErrors) throws IOException {
+        File productsFile = new File(dataDirectory, PRODUCTS_FILE);
+        if (!productsFile.exists()) {
+            throw new IOException("No se encontró el archivo de productos: " + productsFile.getPath());
+        }
+
+        Map<String, Product> productsById = new LinkedHashMap<String, Product>();
+        Scanner scanner = new Scanner(productsFile, "UTF-8");
+
+        try {
+            int lineNumber = 0;
+            while (scanner.hasNextLine()) {
+                lineNumber++;
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                String[] fields = splitLine(line);
+                if (fields.length != 3) {
+                    validationErrors.add("Línea inválida en products.txt (línea " + lineNumber + "): " + line);
+                    continue;
+                }
+
+                try {
+                    String productId = fields[0];
+                    String productName = fields[1];
+                    double price = parseDecimal(fields[2]);
+
+                    if (price < 0) {
+                        validationErrors.add("Precio negativo detectado en products.txt (línea " + lineNumber + "): " + line);
+                        continue;
+                    }
+
+                    if (productsById.containsKey(productId)) {
+                        validationErrors.add("Producto duplicado en products.txt: " + productId);
+                        continue;
+                    }
+
+                    productsById.put(productId, new Product(productId, productName, price));
+                } catch (NumberFormatException exception) {
+                    validationErrors.add("Precio inválido en products.txt (línea " + lineNumber + "): " + line);
+                }
+            }
+        } finally {
+            scanner.close();
+        }
+
+        if (productsById.isEmpty()) {
+            throw new IllegalStateException("No se cargó ningún producto válido desde products.txt");
+        }
+
+        return productsById;
+    }
+
+    private static void processSalesFiles(File dataDirectory,
+                                          Map<String, Seller> sellersByKey,
+                                          Map<String, Product> productsById,
+                                          List<String> validationErrors) throws IOException {
+        File[] salesFiles = dataDirectory.listFiles();
+        if (salesFiles == null) {
+            throw new IOException("No fue posible listar los archivos de la carpeta data.");
+        }
+
+        for (File salesFile : salesFiles) {
+            if (!isSalesFile(salesFile)) {
+                continue;
             }
 
-            // Mensaje de éxito obligatorio
-            System.out.println("\nFinalización exitosa");
-
-        } catch (Exception e) {
-            System.err.println("Error al procesar los archivos: " + e.getMessage());
+            processSingleSalesFile(salesFile, sellersByKey, productsById, validationErrors);
         }
+    }
+
+    private static boolean isSalesFile(File file) {
+        return file.isFile()
+                && file.getName().startsWith("sales_")
+                && file.getName().endsWith(".txt")
+                && !SALESMEN_INFO_FILE.equals(file.getName());
+    }
+
+    private static void processSingleSalesFile(File salesFile,
+                                               Map<String, Seller> sellersByKey,
+                                               Map<String, Product> productsById,
+                                               List<String> validationErrors) throws IOException {
+        Scanner scanner = new Scanner(salesFile, "UTF-8");
+
+        try {
+            if (!scanner.hasNextLine()) {
+                validationErrors.add("Archivo de ventas vacío: " + salesFile.getName());
+                return;
+            }
+
+            String headerLine = scanner.nextLine().trim();
+            String[] headerFields = splitLine(headerLine);
+
+            if (headerFields.length != 2) {
+                validationErrors.add("Encabezado inválido en archivo de ventas " + salesFile.getName() + ": " + headerLine);
+                return;
+            }
+
+            Seller seller;
+            try {
+                String sellerKey = buildSellerKey(headerFields[0], Long.parseLong(headerFields[1]));
+                seller = sellersByKey.get(sellerKey);
+            } catch (NumberFormatException exception) {
+                validationErrors.add("Documento inválido en el encabezado del archivo " + salesFile.getName() + ": " + headerLine);
+                return;
+            }
+
+            if (seller == null) {
+                validationErrors.add("Vendedor no encontrado para el archivo " + salesFile.getName() + ": " + headerLine);
+                return;
+            }
+
+            int lineNumber = 1;
+            while (scanner.hasNextLine()) {
+                lineNumber++;
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                String[] fields = splitLine(line);
+                if (fields.length != 2) {
+                    validationErrors.add("Línea inválida en " + salesFile.getName() + " (línea " + lineNumber + "): " + line);
+                    continue;
+                }
+
+                String productId = fields[0];
+                Product product = productsById.get(productId);
+                if (product == null) {
+                    validationErrors.add("Producto inexistente en " + salesFile.getName() + " (línea " + lineNumber + "): " + productId);
+                    continue;
+                }
+
+                try {
+                    int quantity = Integer.parseInt(fields[1]);
+                    if (quantity < 0) {
+                        validationErrors.add("Cantidad negativa en " + salesFile.getName() + " (línea " + lineNumber + "): " + line);
+                        continue;
+                    }
+
+                    seller.addSale(new Sale(product, quantity));
+                } catch (NumberFormatException exception) {
+                    validationErrors.add("Cantidad inválida en " + salesFile.getName() + " (línea " + lineNumber + "): " + line);
+                }
+            }
+        } finally {
+            scanner.close();
+        }
+    }
+
+    private static void writeSalesmenReport(File dataDirectory, Map<String, Seller> sellersByKey) throws IOException {
+        List<Seller> sellers = new ArrayList<Seller>(sellersByKey.values());
+        Collections.sort(sellers, new Comparator<Seller>() {
+            @Override
+            public int compare(Seller firstSeller, Seller secondSeller) {
+                return Double.compare(secondSeller.getTotalSalesAmount(), firstSeller.getTotalSalesAmount());
+            }
+        });
+
+        File reportFile = new File(dataDirectory, SALES_REPORT_FILE);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(reportFile));
+        DecimalFormat decimalFormat = createDecimalFormat();
+
+        try {
+            for (Seller seller : sellers) {
+                writer.write(seller.getDocumentType() + ";"
+                        + seller.getId() + ";"
+                        + seller.getFirstName() + ";"
+                        + seller.getLastName() + ";"
+                        + decimalFormat.format(seller.getTotalSalesAmount()));
+                writer.newLine();
+            }
+        } finally {
+            writer.close();
+        }
+    }
+
+    private static void writeProductsReport(File dataDirectory, Map<String, Product> productsById) throws IOException {
+        List<Product> soldProducts = new ArrayList<Product>();
+        for (Product product : productsById.values()) {
+            if (product.getTotalQuantitySold() > 0) {
+                soldProducts.add(product);
+            }
+        }
+
+        Collections.sort(soldProducts, new Comparator<Product>() {
+            @Override
+            public int compare(Product firstProduct, Product secondProduct) {
+                return Integer.compare(secondProduct.getTotalQuantitySold(), firstProduct.getTotalQuantitySold());
+            }
+        });
+
+        File reportFile = new File(dataDirectory, PRODUCTS_REPORT_FILE);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(reportFile));
+        DecimalFormat decimalFormat = createDecimalFormat();
+
+        try {
+            for (Product product : soldProducts) {
+                writer.write(product.getProductName() + ";"
+                        + decimalFormat.format(product.getPrice()) + ";"
+                        + product.getTotalQuantitySold());
+                writer.newLine();
+            }
+        } finally {
+            writer.close();
+        }
+    }
+
+    private static void writeErrorLog(File dataDirectory, List<String> validationErrors) throws IOException {
+        File errorLogFile = new File(dataDirectory, ERROR_LOG_FILE);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(errorLogFile));
+
+        try {
+            if (validationErrors.isEmpty()) {
+                writer.write("No se encontraron errores de validación.");
+                writer.newLine();
+                return;
+            }
+
+            for (String validationError : validationErrors) {
+                writer.write(validationError);
+                writer.newLine();
+            }
+        } finally {
+            writer.close();
+        }
+    }
+
+    private static String buildSellerKey(String documentType, long documentNumber) {
+        return documentType.trim() + ";" + documentNumber;
+    }
+
+    private static String[] splitLine(String line) {
+        String sanitizedLine = line;
+        if (sanitizedLine.endsWith(";")) {
+            sanitizedLine = sanitizedLine.substring(0, sanitizedLine.length() - 1);
+        }
+
+        String[] rawFields = sanitizedLine.split(";");
+        List<String> cleanFields = new ArrayList<String>();
+        for (String rawField : rawFields) {
+            String field = rawField.trim();
+            if (!field.isEmpty()) {
+                cleanFields.add(field);
+            }
+        }
+
+        return cleanFields.toArray(new String[cleanFields.size()]);
+    }
+
+    private static double parseDecimal(String value) {
+        return Double.parseDouble(value.replace(',', '.'));
+    }
+
+    private static DecimalFormat createDecimalFormat() {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        return new DecimalFormat("0.00", symbols);
     }
 }

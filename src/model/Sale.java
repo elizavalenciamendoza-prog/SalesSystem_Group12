@@ -1,10 +1,12 @@
 package model;
 
-import java.util.List; 
-
+/**
+ * Represents a sale line associated with one product and quantity.
+ */
 public class Sale {
-    private Product product;
-    private int quantity;
+
+    private final Product product;
+    private final int quantity;
 
     public Sale(Product product, int quantity) {
         this.product = product;
@@ -19,7 +21,7 @@ public class Sale {
         return quantity;
     }
 
-    public void printInfo() {
-        System.out.println("Producto: " + product.getProductName() + " | Cantidad: " + quantity + " | Precio Unitario: $" + product.getPrice() + " | Total: $" + (product.getPrice() * quantity));
+    public double getTotalAmount() {
+        return product.getPrice() * quantity;
     }
 }
