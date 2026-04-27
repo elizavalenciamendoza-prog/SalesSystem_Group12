@@ -7,20 +7,17 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Main class for the first delivery of the project.
- * Generates pseudo-random input flat files for products, salesmen,
- * and salesman sales files.
+ * Main class for the input file generation process.
  */
 public class GenerateInfoFiles {
 
-	/**
+    /**
      * Program entry point.
      *
      * @param args command line arguments (not used)
      */
     public static void main(String[] args) {
-        // Creando archivos de prueba para el Grupo 12
-    	FileGenerator fileGenerator = new FileGenerator();
+        FileGenerator fileGenerator = new FileGenerator();
 
         try {
             int productsCount = 10;
@@ -34,13 +31,13 @@ public class GenerateInfoFiles {
                 fileGenerator.createSalesMenFile(salesMan, products, salesLinesPerSalesMan);
             }
 
-            System.out.println("Archivos generados correctamente en la carpeta data.");
-        } catch (IOException e) {
-            System.err.println("Error de entrada/salida al generar archivos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.err.println("Error en los argumentos de generación: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Error inesperado: " + e.getMessage());
+            System.out.println("Creacion exitosa");
+        } catch (IOException exception) {
+            System.err.println("Error de entrada/salida al generar archivos: " + exception.getMessage());
+        } catch (IllegalArgumentException exception) {
+            System.err.println("Error en los argumentos de generación: " + exception.getMessage());
+        } catch (Exception exception) {
+            System.err.println("Error inesperado: " + exception.getMessage());
         }
     }
 }

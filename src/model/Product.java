@@ -4,16 +4,19 @@ package model;
  * Represents a product available for sale.
  */
 public class Product {
-    private String id;
-    private String productName;
-    private double price;
+
+    private final String id;
+    private final String productName;
+    private final double price;
+    private int totalQuantitySold;
 
     public Product(String id, String productName, double price) {
         this.id = id;
         this.productName = productName;
         this.price = price;
+        this.totalQuantitySold = 0;
     }
-    
+
     public String getId() {
         return id;
     }
@@ -25,8 +28,12 @@ public class Product {
     public double getPrice() {
         return price;
     }
-    
-    public void printInfo() {
-        System.out.println("ID: " + id + " | " + "Producto: " + productName + " | Precio: $" + price);
+
+    public int getTotalQuantitySold() {
+        return totalQuantitySold;
+    }
+
+    public void addSoldQuantity(int quantity) {
+        this.totalQuantitySold += quantity;
     }
 }

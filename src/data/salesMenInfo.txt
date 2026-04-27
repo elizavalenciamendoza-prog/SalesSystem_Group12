@@ -1,5 +1,5 @@
-CE;1000;Pedro;Pérez
-CE;1001;Miguel;Morales
-TI;1002;Andrés;Pérez
-CC;1003;Valentina;Martínez
-CE;1004;Andrés;Gómez
+CE;1000;Valentina;Pérez
+TI;1001;Ana;Ramírez
+TI;1002;Sofía;Martínez
+CE;1003;María;García
+CE;1004;Juan;Gómez

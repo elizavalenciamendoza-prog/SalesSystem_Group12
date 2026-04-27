@@ -1,58 +1,57 @@
 package model;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents a seller.
+ * Represents a seller and all the sales associated with that seller.
  */
 public class Seller {
-	private String documentType;
-	private long id;
-	private String firstName;
-	private String lastName;
-	private List<Sale> sales;
+
+    private final String documentType;
+    private final long id;
+    private final String firstName;
+    private final String lastName;
+    private final List<Sale> sales;
 
     public Seller(String documentType, long id, String firstName, String lastName) {
         this.documentType = documentType;
-    	this.id = id;
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-		this.sales = new ArrayList<>();
+        this.sales = new ArrayList<Sale>();
     }
 
-	public String getDocumentType() {
-		return documentType;
-	}
+    public String getDocumentType() {
+        return documentType;
+    }
 
-	public long getId() {
-		return id;
-	}
+    public long getId() {
+        return id;
+    }
 
-	public String getFirstName() {
-		return firstName;
-	}
+    public String getFirstName() {
+        return firstName;
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public String getLastName() {
+        return lastName;
+    }
 
-	public void addSale(Sale sale) {
-		this.sales.add(sale);
-	}
+    public List<Sale> getSales() {
+        return sales;
+    }
 
-	public List<Sale> getSales() {
-		return sales;
-	}
+    public void addSale(Sale sale) {
+        sales.add(sale);
+        sale.getProduct().addSoldQuantity(sale.getQuantity());
+    }
 
-	public void printInfo() {
-		System.out.println("Tipo de Documento: " + documentType + " | ID: " + id + " | Nombre: " + firstName + " " + lastName);
-		
-		if (!sales.isEmpty()) {
-			System.out.println("Ventas:");
-			for (Sale sale : sales) {
-				sale.printInfo();
-			}
-		}
-	}
+    public double getTotalSalesAmount() {
+        double total = 0.0;
+        for (Sale sale : sales) {
+            total += sale.getTotalAmount();
+        }
+        return total;
+    }
 }

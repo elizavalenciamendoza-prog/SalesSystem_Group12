@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -25,7 +27,8 @@ public class FileGenerator {
     private final DecimalFormat decimalFormat;
 
     public FileGenerator() {
-        decimalFormat = new DecimalFormat("0.00");
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        decimalFormat = new DecimalFormat("0.00", symbols);
     }
 
     /**
@@ -44,9 +47,9 @@ public class FileGenerator {
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
-            for (int i = 0; i < productsCount; i++) {
-                String productId = "P" + String.format("%03d", i + 1);
-                String productName = RandomDataUtil.randomProductName(i);
+            for (int index = 0; index < productsCount; index++) {
+                String productId = "P" + String.format("%03d", index + 1);
+                String productName = RandomDataUtil.randomProductName(index);
                 double price = RandomDataUtil.randomPrice();
 
                 Product product = new Product(productId, productName, price);
@@ -73,24 +76,24 @@ public class FileGenerator {
         validatePositiveNumber(salesmanCount, "salesmanCount");
         createOutputFolderIfNeeded();
 
-        List<Seller> salesMen = new ArrayList<>();
+        List<Seller> salesMen = new ArrayList<Seller>();
         File file = new File(OUTPUT_FOLDER, SALESMEN_FILE_NAME);
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
-            for (int i = 0; i < salesmanCount; i++) {
+            for (int index = 0; index < salesmanCount; index++) {
                 String documentType = RandomDataUtil.randomDocumentType();
-                long documentNumber = 1000 + i;
+                long documentNumber = 1000 + index;
                 String firstName = RandomDataUtil.randomFirstName();
                 String lastName = RandomDataUtil.randomLastName();
 
                 Seller salesMan = new Seller(documentType, documentNumber, firstName, lastName);
                 salesMen.add(salesMan);
 
-                writer.write(salesMan.getDocumentType() + ";" +
-                             salesMan.getId() + ";" +
-                             salesMan.getFirstName() + ";" +
-                             salesMan.getLastName());
+                writer.write(salesMan.getDocumentType() + ";"
+                        + salesMan.getId() + ";"
+                        + salesMan.getFirstName() + ";"
+                        + salesMan.getLastName());
                 writer.newLine();
             }
         } finally {
@@ -120,7 +123,7 @@ public class FileGenerator {
             writer.write("CC;" + id);
             writer.newLine();
 
-            for (int i = 0; i < randomSalesCount; i++) {
+            for (int index = 0; index < randomSalesCount; index++) {
                 String productId = "P" + String.format("%03d", 1 + RandomDataUtil.randomProductIndex(10));
                 int quantity = RandomDataUtil.randomQuantity();
 
@@ -133,8 +136,7 @@ public class FileGenerator {
     }
 
     /**
-     * Recommended overloaded method to create coherent salesman sales files
-     * using an existing salesman and the generated products list.
+     * Creates a coherent sales file for one salesman using the generated products list.
      *
      * @param salesMan salesman owner of the file
      * @param products available products
@@ -164,12 +166,9 @@ public class FileGenerator {
             writer.write(salesMan.getDocumentType() + ";" + salesMan.getId());
             writer.newLine();
 
-            for (int i = 0; i < randomSalesCount; i++) {
+            for (int index = 0; index < randomSalesCount; index++) {
                 Product product = products.get(RandomDataUtil.randomProductIndex(products.size()));
 
-                /*
-                 * Avoid repeating too many product lines when enough products exist.
-                 */
                 if (usedProducts.size() < products.size()) {
                     while (usedProducts.contains(product.getId())) {
                         product = products.get(RandomDataUtil.randomProductIndex(products.size()));
