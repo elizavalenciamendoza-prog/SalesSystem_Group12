@@ -1,0 +1,31 @@
+CONCLUSIONES PROYECTO - GENERACION Y CLASIFICACION DE DATOS
+
+Modulo: Conceptos Fundamentales de Programación
+
+Politécnico Grancolombiano
+
+
+1. LO APRENDIDO DURANTE EL DESARROLLO DEL PROYECTO
+
+Este proyecto fue muy enriquecedor y aumenta nuestros conocimientos en la generación de un repositorio en GitHub programado en Java específicamente Eclipse el cual se compone de dos partes, una que generaba datos de prueba y la otra que procesaba toda esa información y generaba reportes.
+Se practico la generación de datos pseudoaleatorios mediante organización de información como ArrayList lo que facilito el procesamiento y la agrupación de información tanto de vendedores como de productos y ventas, además y muy importante sin que la persona que ingrese a usar el programa deba ingresar información.
+Los datos fueron coherentes y ordenados máxime teniendo en cuenta que los mismos fueron ficticios; el programa arroja resultados comparativos y reportes ordenado lo que permite un mantenimiento y comprensión del código.
+Todas los integrantes del grupo del trabajo colaborativo no cuentan con la misma experticia o conocimientos en el desarrollo tanto de repositorios como de programas en Java pero se logró que trabajáramos juntos y cada uno desde su misma experiencia lograron guiar a los demás en este proceso, por lo tanto fue enriquecedor para todos.
+
+
+2. POSIBLES APLICACIONES EN NUESTRA VIDA PROFESIONAL
+
+Las habilidades y conocimientos adquiridos en este proyecto tienen innumerables aplicaciones en el mundo laboral, ejemplo simple de ello es la elaboración de programas que generen reportes empresariales que pueden medir el rendimiento de los colaboradores de una empresa de ventas o logística, esto llevaría no solo a medir la productividad sino la rotación de productos, tareas que en empresas pequeñas se desarrolla en Excel.
+Otra aplicación es la generación de datos aleatorios que pueden realizar pruebas de sistemas sin la necesidad de emplear información real de clientes protegiendo información sensible.
+Automatizar las tareas repetitivas que sin la intervención del usuario pueda generar y procesar archivos, esto sería de inmensa ayuda en un entorno donde se maneje un alto volumen de información de forma periódica.
+La integración de sistemas donde la lectura y escritura de archivos CSV es un método común para el intercambio de información entre sistemas de software.
+Finalmente podemos mencionar que estamos en proceso de aprendizaje y este trabajo es muy importante para ser tenido en cuenta como base o fundamento para tecnologías mas avanzadas, entre ellos servicios web, bases de datos y desarrollo de aplicaciones empresariales. 
+
+
+3. DIFICULTADES PRESENTADAS DURANTE EL DESARROLLO DEL PROYECTO
+
+Las dificultades se miden desde la óptica de cada uno de nosotros, hay compañeros avanzados en la elaboración de programas que este desarrollo le puede parecer demasiado fácil y rutinario, pero todo es aprendizaje, de manera general podríamos mencionar que una dificultad fue gestionar las rutas de los diferentes archivos, ya que se debe garantizar que se enlazaran los mismos.
+Otra dificultad fue garantizar que estos datos generados pseudoaleatoriamente fueran coherentes especialmente al relacionar la identificación de los productos vendidos con los archivos de los mismos productos, evitando la referencia a productos inexistentes.
+El manejo correcto de excepciones también representó un reto, dado que era necesario contemplar múltiples escenarios de error como archivos no encontrados, formatos incorrectos o valores de productos negativos mostrando mensajes que además de claros no interrumpieran la ejecución del programa.
+ 
+
